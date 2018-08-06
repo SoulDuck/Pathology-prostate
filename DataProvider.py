@@ -74,8 +74,37 @@ def tf_writer(tfrecord_path, img_sources, labels , resize=None):
                 exit()
     writer.close()
 
+
+def tf_padder(img_paths , height , width  , save_folder):
+    ret_images = []
+    print '## TF Graph was Reset!! ##'
+    tf.reset_default_graph()
+    sess = tf.Session()
+    img_tensor = tf.placeholder(dtype=tf.uint8, shape=[None, None , 3])
+    padded_image_op = tf.image.resize_image_with_crop_or_pad(img_tensor ,  height  , width )
+    import matplotlib.pyplot as plt
+    for path in img_paths:
+        img = np.asarray(Image.open(path)).astype(np.uint8)
+        assert img.max > 1 , 'Image pixel range 0 ~ 255'
+        padded_image = sess.run( fetches =  padded_image_op , feed_dict={img_tensor : img})
+        if not save_folder is None:
+            name = os.path.split(path)[-1]
+            savepath = os.path.join(save_folder, name)
+            plt.imsave( savepath ,padded_image )
+        ret_images.append(padded_image)
+
+    return ret_images
+
+
+
+
+
+
+
+
+
+
 def random_crop_shuffled_batch(tfrecord_path, batch_size, crop_size , num_epoch , min_after_dequeue=500):
-    crop_height, crop_width = crop_size
     filename_queue = tf.train.string_input_producer([tfrecord_path], num_epochs=num_epoch , name='filename_queue')
     reader = tf.TFRecordReader()
     _, serialized_example = reader.read(filename_queue)
@@ -97,7 +126,8 @@ def random_crop_shuffled_batch(tfrecord_path, batch_size, crop_size , num_epoch 
     image_shape = tf.stack([height , width , 3])  # image_shape shape is ..
     #image_size_const = tf.constant((resize_height, resize_width, 3), dtype=tf.int32)
     image = tf.reshape(image, image_shape)
-    image = tf.random_crop(value = image, size = (crop_height,crop_width))
+
+    image = tf.random_crop(value = image, size = crop_size)
     image=tf.cast(image , dtype=tf.float32)
     images, labels, fnames = tf.train.shuffle_batch([image, label, filename], batch_size=batch_size, capacity=5000,
                                                     num_threads=1,
@@ -105,14 +135,20 @@ def random_crop_shuffled_batch(tfrecord_path, batch_size, crop_size , num_epoch 
     return images, labels , fnames
 
 if __name__ == '__main__':
-    fgs = glob.glob('/Users/seongjungkim/PycharmProjects/pathology/SS14-35488_B2/roi/Train/*.png')
-    bgs = glob.glob('/Users/seongjungkim/PycharmProjects/pathology/SS14-35488_B2/bg/Train/*.png')
+    fgs = glob.glob('/Users/seongjungkim/PycharmProjects/Pathology-prostate/Train_bg/*.png')
+    bgs = glob.glob('/Users/seongjungkim/PycharmProjects/Pathology-prostate/Train_fg/*.png')
     print '# fg : {} , # bg : {} '.format(len(fgs) , len(bgs))
     # NORMAL = 0  ABNORMAL =1
     labels = np.append(np.ones(len(fgs)), np.zeros(len(bgs))).astype(np.int32)
     img_paths = fgs  + bgs
     tfrecord_path = './tmp.tfrecord'
     tf_writer(tfrecord_path=tfrecord_path , img_sources = img_paths , labels = labels )
+
+    # Paddding Test
+    paths = ['/Users/seongjungkim/PycharmProjects/Pathology-prostate/Train_fg/C.png']
+    imgs = tf_padder(paths , height = 700 , width = 700 , save_folder='patched_train_fg')
+
+
 
 
 
