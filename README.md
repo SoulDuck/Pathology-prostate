@@ -7,3 +7,8 @@
 
 + preprocessing
     - get_undersize : 특정 크기보다 작은 이미지를 걸러내 paths 로 반홥합니다.
+
+
+
++ Process
+    >> Fg , Bg 나눈기 >> 특정 크기보다 작은 이미지 추출 하기 >>
