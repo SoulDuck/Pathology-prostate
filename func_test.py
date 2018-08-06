@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from DataProvider import random_crop_shuffled_batch
 
+
+# random_crop_shuffled_batch Test
 img=np.asarray(Image.open('A.png'))
 A = tf.Variable(img)
 A_crop_op = tf.random_crop( A ,(700, 700 ,3))

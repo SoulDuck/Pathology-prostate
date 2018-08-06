@@ -2,8 +2,10 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image
 import matplotlib.pyplot as plt
-img=np.asarray(Image.open('/Users/seongjungkim/PycharmProjects/Pathology-prostate/Train_fg/E.png'))
 
+# usage : resize_image_with_crop_or_pad
+
+img=np.asarray(Image.open('/Users/seongjungkim/PycharmProjects/Pathology-prostate/Train_fg/E.png'))
 shape=tf.shape(img)
 img_tensor = tf.Variable(img)
 padded_img_tensor=tf.image.resize_image_with_crop_or_pad(img_tensor , 700,700)
