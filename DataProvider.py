@@ -212,8 +212,8 @@ if __name__ == '__main__':
     # 만약 크면 그냥 저장합니다
     copy_images(larger , 'patched_train_fg')
 
-    fgs = glob.glob('/Users/seongjungkim/PycharmProjects/Pathology-prostate/patched_train_fg/*.png')
-    bgs = glob.glob('/Users/seongjungkim/PycharmProjects/Pathology-prostate/Train_bg/*.png')
+    fgs = glob.glob('patched_train_fg/*.png')
+    bgs = glob.glob('Train_bg/*.png')
     print '# fg : {} , # bg : {} '.format(len(fgs) , len(bgs))
 
     # NORMAL = 0  ABNORMAL =1
