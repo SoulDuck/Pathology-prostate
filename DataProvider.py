@@ -3,6 +3,52 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import os  , sys , glob
+import shutil
+
+
+def reconstruct_tfrecord_rawdata(tfrecord_path, resize , ):
+    debug_flag_lv0 = False
+    debug_flag_lv1 = False
+    if __debug__ == debug_flag_lv0:
+        print 'debug start | batch.py | class tfrecord_batch | reconstruct_tfrecord_rawdata '
+
+    print 'now Reconstruct Image Data please wait a second'
+    print 'Resize {}'.format(resize)
+    reconstruct_image = []
+    # caution record_iter is generator
+    record_iter = tf.python_io.tf_record_iterator(path=tfrecord_path)
+
+    ret_img_list = []
+    ret_lab_list = []
+    ret_filename_list = []
+    for i, str_record in enumerate(record_iter):
+        msg = '\r -progress {0}'.format(i)
+        sys.stdout.write(msg)
+        sys.stdout.flush()
+        example = tf.train.Example()
+        example.ParseFromString(str_record)
+
+        height = int(example.features.feature['height'].int64_list.value[0])
+        width = int(example.features.feature['width'].int64_list.value[0])
+        raw_image = (example.features.feature['raw_image'].bytes_list.value[0])
+        label = int(example.features.feature['label'].int64_list.value[0])
+        filename = (example.features.feature['filename'].bytes_list.value[0])
+        image = np.fromstring(raw_image, dtype=np.uint8)
+        image = image.reshape((height, width, -1))
+        if not resize is None:
+            image = np.asarray(Image.fromarray(image).resize(resize, Image.ANTIALIAS))
+        ret_img_list.append(image)
+        ret_lab_list.append(label)
+        ret_filename_list.append(filename)
+
+    ret_img = np.asarray(ret_img_list)
+    ret_lab = np.asarray(ret_lab_list)
+    if debug_flag_lv1 == True:
+        print ''
+        print 'images shape : ', np.shape(ret_img)
+        print 'labels shape : ', np.shape(ret_lab)
+        print 'length of filenames : ', len(ret_filename_list)
+    return ret_img, ret_lab, ret_filename_list
 
 def tf_writer(tfrecord_path, img_sources, labels , resize=None):
     """
@@ -32,7 +78,7 @@ def tf_writer(tfrecord_path, img_sources, labels , resize=None):
             sys.stdout.write(msg)
             sys.stdout.flush()
             if isinstance(img_source , str): # img source  == str
-                np_img = np.asarray(Image.open(img_source)).astype(np.int8)
+                np_img = np.asarray(Image.open(img_source).convert('RGB')).astype(np.int8)
                 height = np_img.shape[0]
                 width = np_img.shape[1]
                 dirpath, filename = os.path.split(img_source)
@@ -96,15 +142,34 @@ def tf_padder(img_paths , height , width  , save_folder):
     return ret_images
 
 
+def copy_images(src_paths , dst_dirname ):
+    for path in src_paths:
+        name= os.path.split(path)[-1]
+        dst_path =os.path.join(dst_dirname , name)
+        shutil.copy(path, dst_path)
+
+
+def size_checker(paths , height, width):
+    larger =[]
+    smaller = []
+    for path in paths:
+        img=Image.open(path)
+        w,h=img.size
+        if w <= width and h <= height:
+            smaller.append(path)
+        else:
+            larger.append(path)
+    return smaller , larger
+
+def image_channel_checker(paths , channel = 'RGB'):
+    for path in paths:
+        img = Image.open(path)
+        print np.shape(img)
 
 
 
 
-
-
-
-
-def random_crop_shuffled_batch(tfrecord_path, batch_size, crop_size , num_epoch , min_after_dequeue=500):
+def random_crop_shuffled_batch(tfrecord_path, batch_size, crop_size , num_epoch , min_after_dequeue=10):
     filename_queue = tf.train.string_input_producer([tfrecord_path], num_epochs=num_epoch , name='filename_queue')
     reader = tf.TFRecordReader()
     _, serialized_example = reader.read(filename_queue)
@@ -124,33 +189,39 @@ def random_crop_shuffled_batch(tfrecord_path, batch_size, crop_size , num_epoch 
     filename = tf.cast(features['filename'], tf.string)
 
     image_shape = tf.stack([height , width , 3])  # image_shape shape is ..
+
     #image_size_const = tf.constant((resize_height, resize_width, 3), dtype=tf.int32)
     image = tf.reshape(image, image_shape)
 
     image = tf.random_crop(value = image, size = crop_size)
     image=tf.cast(image , dtype=tf.float32)
-    images, labels, fnames = tf.train.shuffle_batch([image, label, filename], batch_size=batch_size, capacity=5000,
+    images, labels, fnames = tf.train.shuffle_batch([image, label, filename], batch_size=batch_size, capacity=100,
                                                     num_threads=1,
                                                     min_after_dequeue=min_after_dequeue)
     return images, labels , fnames
 
 if __name__ == '__main__':
-    fgs = glob.glob('/Users/seongjungkim/PycharmProjects/Pathology-prostate/Train_bg/*.png')
-    bgs = glob.glob('/Users/seongjungkim/PycharmProjects/Pathology-prostate/Train_fg/*.png')
+    # Paddding Test
+    paths = glob.glob('./Train_fg/*.png')
+    # 지정한 사이즈 보다 작은 paths 들을 분리합니다
+    smaller , larger = size_checker(paths , 650 ,650)
+    # 지정한 사이즈 보다 작으면 padding 을 붙입니다
+    imgs = tf_padder(smaller  , height = 650 , width = 650, save_folder='patched_train_fg')
+    # 만약 크면 그냥 저장합니다
+    copy_images(larger , 'patched_train_fg')
+
+    fgs = glob.glob('/Users/seongjungkim/PycharmProjects/Pathology-prostate/patched_train_fg/*.png')
+    bgs = glob.glob('/Users/seongjungkim/PycharmProjects/Pathology-prostate/Train_bg/*.png')
     print '# fg : {} , # bg : {} '.format(len(fgs) , len(bgs))
+
     # NORMAL = 0  ABNORMAL =1
     labels = np.append(np.ones(len(fgs)), np.zeros(len(bgs))).astype(np.int32)
     img_paths = fgs  + bgs
+
+    #image_channel_checker(img_paths)
     tfrecord_path = './tmp.tfrecord'
     tf_writer(tfrecord_path=tfrecord_path , img_sources = img_paths , labels = labels )
-
-    # Paddding Test
-    paths = ['/Users/seongjungkim/PycharmProjects/Pathology-prostate/Train_fg/C.png']
-    imgs = tf_padder(paths , height = 700 , width = 700 , save_folder='patched_train_fg')
-
-
-
-
+    images, labels ,fnames = reconstruct_tfrecord_rawdata(tfrecord_path, None)
 
 
 
