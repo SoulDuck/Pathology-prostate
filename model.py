@@ -167,8 +167,6 @@ class VGG(DNN):
 
     def build_graph(self ):
         ##### define conv connected layer #######
-        image_size = int(self.x_.get_shape()[-2])
-        n_classes = int(self.x_.get_shape()[-1])
         if self.model == 'vgg_11':
             print 'Model : {}'.format('vgg 11')
             conv_out_features = [64, 128, 256, 256, 512, 512, 512, 512]
