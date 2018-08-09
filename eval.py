@@ -1,7 +1,9 @@
+#-*- coding:utf-8 -*-
 import tensorflow as tf
 import numpy as np
+import matplotlib.pyplot as plt
 import os
-
+from PIL import Image
 # Reconstruct Model
 class Eval(object):
     def __init__(self):
@@ -19,35 +21,21 @@ class Eval(object):
         self.is_training =tf.get_default_graph().get_tensor_by_name('is_training:0')
         self.top_conv = tf.get_default_graph().get_tensor_by_name('top_conv:0')
         self.logits = tf.get_default_graph().get_tensor_by_name('logits:0')
-        self.cam_w = tf.get_default_graph().get_tensor_by_name('final/w:0')
-        self.cam_b = tf.get_default_graph().get_tensor_by_name('final/b:0')
+
+        self.cam_label = tf.get_default_graph().get_tensor_by_name('cam_label:0')
+        self.classmap = tf.get_default_graph().get_tensor_by_name('classmap:0')
 
     # Change Input placeholder to [ None , None , None , 3 ]
     def change_node(self):
         raise NotImplementedError
-    def actmap(self):
-        raise NotImplementedError
     def actmap(self , test_img , savepath):
-
         test_img = test_img if (np.ndim(test_img) !=3 ) else test_img.reshape([[1] + list(test_img) ]);
-        top_conv, logits = self.sess.run([self.top_conv, self.logits],
-                                         feed_dict={self.x_: test_img, self.is_training: False})
-        cam_ = self.sess.run(cam, feed_dict={self.y_: label, self.top_conv: top_conv})  # cam_answer
-
-        cam_ = np.asarray((map(lambda x: (x - x.min()) / (x.max() - x.min()), cam_)))  # -->why need this?
-
-        # 기존의 class activation map을 뽑을때 실수를 해서
-        # 299, 299 사이즈로 activation map을 biinear interpolation 을 했다
-        # 그래서 기존의 것과 같이 쓸수 잇도록 수정한다
-        try:
-            cam_img = cam_.reshape((ori_img_h, ori_img_w))
-            cam_img = cam_img.reshape((ori_img_h, ori_img_w))  # why need this?
-        except:
-            cam_img = cam_.reshape(cropped_img_size)
-            cam_img = cam_img.reshape(cropped_img_size)  # why need this?
-
-        plt.imshow(cam_img, cmap=plt.cm.jet, alpha=0.5, interpolation='nearest',
-                   vmin=0, vmax=1)
+        classmap = self.sess.run([self.classmap],
+                                 feed_dict={self.x_: test_img, self.is_training: False, self.cam_label: 0})
+        classmap = np.asarray((map(lambda x: (x - x.min()) / (x.max() - x.min()), classmap)))  # -->why need this?
+        return classmap
+        """
+        plt.imshow(cam_img, cmap=plt.cm.jet, alpha=0.5, interpolation='nearest',vmin=0, vmax=1)
         # plt.show()
         cmap = plt.cm.jet
         plt.imsave('{}/actmap_abnormal_label_0.png'.format(save_dir), cmap(cam_img))
@@ -67,6 +55,7 @@ class Eval(object):
         # plt.show()
         plt.close();
         """
+        """
         if test_imgs.shape[-1] == 1:  # grey
             plt.imshow(1 -img.reshape([test_imgs.shape[1], test_imgs.shape[2]]))
             plt.show()
@@ -74,4 +63,8 @@ class Eval(object):
 if __name__ == '__main__':
     eval=Eval()
     eval.restore_model('saved_model/model.ckpt')
+    img=np.asarray(Image.open('/Users/seongjungkim/PycharmProjects/Pathology-prostate/patched_train_fg/A.png'))
+    img=img.reshape([1] + list(np.shape(img)))
+    classmap = eval.actmap(img, None)
+    print np.shape(classmap)
 
