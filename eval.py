@@ -33,6 +33,9 @@ class Eval(object):
         classmap = self.sess.run([self.classmap],
                                  feed_dict={self.x_: test_img, self.is_training: False, self.cam_label: 0})
         classmap = np.asarray((map(lambda x: (x - x.min()) / (x.max() - x.min()), classmap)))  # -->why need this?
+        classmap = np.squeeze(classmap)
+        plt.imshow()
+        plt.show()
         return classmap
         """
         plt.imshow(cam_img, cmap=plt.cm.jet, alpha=0.5, interpolation='nearest',vmin=0, vmax=1)
