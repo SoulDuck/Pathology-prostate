@@ -69,5 +69,6 @@ if __name__ == '__main__':
     img=img.reshape([1] + list(np.shape(img)))
     classmap = eval.actmap(img, None)
     plt.imshow(classmap)
+    plt.imsave(classmap , 'tmp_classmap.png')
     plt.show()
 
