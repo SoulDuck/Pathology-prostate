@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 class DNN(object):
     def __init__(self , img_h , img_w , img_ch , n_classes ):
         ### define tensorflow placeholder ###
@@ -294,6 +295,8 @@ if __name__ == '__main__':
 
     for i in range(100):
         images , labels = sess.run([images_op , labels_op])
+        print np.shape(images)
+        exit()
         labels =cls2onehot(labels ,2 )
         cost, _ = sess.run([vgg.cost_op, vgg.train_op],
                            feed_dict={vgg.x_: images, vgg.y_: labels, vgg.is_training: True})
