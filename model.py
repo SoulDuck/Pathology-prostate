@@ -280,8 +280,6 @@ class VGG(DNN):
 if __name__ == '__main__':
     vgg=VGG('vgg_11')
     from DataProvider import random_crop_shuffled_batch
-    import matplotlib.pyplot as plt
-    import numpy as np
     from utils import cls2onehot
     # random_crop_shuffled_batch Test
     tfrecord_path = 'tmp.tfrecord'
