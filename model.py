@@ -294,9 +294,9 @@ if __name__ == '__main__':
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
     for i in range(100):
+        print i
         images , labels = sess.run([images_op , labels_op])
         print np.shape(images)
-        exit()
         labels =cls2onehot(labels ,2 )
         cost, _ = sess.run([vgg.cost_op, vgg.train_op],
                            feed_dict={vgg.x_: images, vgg.y_: labels, vgg.is_training: True})
