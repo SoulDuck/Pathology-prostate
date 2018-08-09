@@ -217,15 +217,14 @@ if __name__ == '__main__':
     print '# fg : {} , # bg : {} '.format(len(fgs) , len(bgs))
 
     # NORMAL = 0  ABNORMAL =1
+    # strike balacne btw normal and abnormal ,
     img_paths = np.asarray(fgs *3 + bgs)
     labels = np.append(np.ones(len(fgs)*3), np.zeros(len(bgs))).astype(np.int32)
+    assert len(img_paths) == len(labels)
+    # Random Shuffle
     indices = random.sample(range(len(labels)) , len(labels))
-
     img_paths = img_paths[indices]
     labels = labels[indices]
-    print len(img_paths)
-    print len(labels)
-
     #image_channel_checker(img_paths)
     tfrecord_path = './tmp.tfrecord'
     tf_writer(tfrecord_path=tfrecord_path , img_sources = img_paths , labels = labels )
