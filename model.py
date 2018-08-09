@@ -294,12 +294,10 @@ if __name__ == '__main__':
     for i in range(100):
         images , labels = sess.run([images_op , labels_op])
         labels =cls2onehot(labels ,2 )
-        print np.shape(images)
-        print labels
-        #train_cost, _ , train_acc  = sess.run([vgg.cost_op, vgg.train_op , vgg.accuracy_op],
-        #                   feed_dict={vgg.x_: images, vgg.y_: labels, vgg.is_training: True})
+        train_cost, _ , train_acc  = sess.run([vgg.cost_op, vgg.train_op , vgg.accuracy_op],
+                           feed_dict={vgg.x_: images, vgg.y_: labels, vgg.is_training: True})
 
-        #print train_cost , train_acc
+        print train_cost , train_acc
 
     coord.request_stop()
     coord.join(threads)
