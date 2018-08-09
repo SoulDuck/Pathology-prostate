@@ -5,8 +5,15 @@ class DNN(object):
         ### define tensorflow placeholder ###
         self.n_classes = n_classes
         self.x_ = tf.placeholder(dtype=tf.float32, shape=[None, None , None, img_ch], name='x_')
+        # Shape of tensor
+        shape=tf.shape(self.x_)
+        self.img_h = shape[1]
+        self.img_w = shape[2]
+        self.img_ch = shape[3]
+
         self.y_ = tf.placeholder(dtype=tf.float32, shape = [None ,self.n_classes ] , name='y_')
         self.is_training = tf.placeholder(dtype=tf.bool , name='is_training')
+        self.cam_label = tf.placeholder(dtype=tf.int32, name='cam_label')
         self.optimizer_name = 'adam'
         self.l2_weight_decay = False
         self.init_lr = 0.0001
@@ -68,10 +75,10 @@ class DNN(object):
         with tf.variable_scope('final') as scope:
             w = tf.get_variable('w', shape=[in_ch, n_classes], initializer=tf.random_normal_initializer(0, 0.01),
                                     trainable=True)
-            b = tf.Variable(tf.constant(0.1), n_classes , name='b')
-            logits = tf.matmul(layer, w, name='matmul') +b
+            #b = tf.Variable(tf.constant(0.1), n_classes , name='b')
+            logits = tf.matmul(layer, w, name='matmul') #  +b
         logits=tf.identity(logits , name='logits')
-        return logits
+        return logits , w
     def affine(self,name, x, out_ch, keep_prob , is_training):
         def _fn(x):
             if len(x.get_shape()) == 4:
@@ -151,7 +158,26 @@ class DNN(object):
         self.correct_pred_op = tf.equal(tf.argmax(logits, 1), tf.argmax(self.y_, 1), name='correct_pred')
         self.accuracy_op = tf.reduce_mean(tf.cast(self.correct_pred_op, dtype=tf.float32), name='accuracy')
 
+    def get_class_map(name, top_conv , gap_w , cam_label , ori_height , ori_width):
+        """
 
+        :param x: input tensor
+        :param gap: tensor node applied for global average pooling
+        :param label: the class you want to see (placeholder)
+
+        :return:
+        """
+        out_ch = tf.shape(top_conv)[-1]
+        conv_resize = tf.image.resize_bilinear(top_conv, [ori_height , ori_width])
+        # label
+        label_w = tf.gather(tf.transpose(gap_w), cam_label)
+        label_w = tf.reshape(label_w, [-1, out_ch, 1])
+        # Resize
+        conv_resize = tf.reshape(conv_resize, [-1, ori_height * ori_width, out_ch])
+        #
+        classmap = tf.matmul(conv_resize, label_w, name='classmap')
+        classmap = tf.reshape(classmap, [-1, ori_height, ori_width], name='classmap_image')
+        return classmap
 
 
 class VGG(DNN):
@@ -253,7 +279,10 @@ class VGG(DNN):
 
         if self.logit_type == 'gap':
             layer = self.gap(self.top_conv)
-            self.logits = self.fc_layer_to_clssses(layer, self.n_classes)
+            # Get Logits
+            self.logits  , self.gap_w = self.fc_layer_to_clssses(layer, self.n_classes)
+            # Get activation map
+            self.get_class_map(self.top_conv, self.gap_w , self.cam_label, self.img_h, self.img_w )
 
         elif self.logit_type == 'fc':
             fc_features = [4096, 4096]
@@ -295,7 +324,6 @@ if __name__ == '__main__':
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
     # train
-
     for i in range(10000):
         images , labels = sess.run([images_op , labels_op])
         labels =cls2onehot(labels ,2 )
