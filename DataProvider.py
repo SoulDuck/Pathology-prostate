@@ -136,7 +136,9 @@ def tf_padder(img_paths , height , width  , save_folder):
         if not save_folder is None:
             name = os.path.split(path)[-1]
             savepath = os.path.join(save_folder, name)
-            plt.imsave( savepath ,padded_image )
+            Image.fromarray(padded_image).convert('RGB').save(savepath)
+
+            #plt.imsave( savepath ,padded_image )
         ret_images.append(padded_image)
 
     return ret_images

@@ -284,7 +284,7 @@ if __name__ == '__main__':
     # random_crop_shuffled_batch Test
     tfrecord_path = 'tmp.tfrecord'
     images_op, labels_op, fnames_op = random_crop_shuffled_batch(tfrecord_path=tfrecord_path,
-                                                                 batch_size=30, crop_size=(500, 500, 3), num_epoch=30000)
+                                                                 batch_size=30, crop_size=(500, 500, 3), num_epoch=30)
     sess = tf.Session()
     init = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
     sess.run(init)
