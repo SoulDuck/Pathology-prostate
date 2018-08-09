@@ -1,10 +1,10 @@
 import tensorflow as tf
 import numpy as np
 class DNN(object):
-    def __init__(self , img_h , img_w , img_ch , n_classes ):
+    def __init__(self ,img_ch , n_classes ):
         ### define tensorflow placeholder ###
         self.n_classes = n_classes
-        self.x_ = tf.placeholder(dtype=tf.float32, shape=[None, img_h , img_w , img_ch], name='x_')
+        self.x_ = tf.placeholder(dtype=tf.float32, shape=[None, None , None, img_ch], name='x_')
         self.y_ = tf.placeholder(dtype=tf.float32, shape = [None ,self.n_classes ] , name='y_')
         self.is_training = tf.placeholder(dtype=tf.bool)
         self.optimizer_name = 'adam'
@@ -157,7 +157,7 @@ class DNN(object):
 class VGG(DNN):
     def __init__(self , model):
 
-        super(VGG ,self ).__init__(500,500,3 , n_classes=2)
+        super(VGG ,self ).__init__(3 , n_classes=2)
         print self.x_
         self.model = model
         self.use_BN = True
