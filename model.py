@@ -333,6 +333,7 @@ if __name__ == '__main__':
 
         saver.save(sess, save_path='saved_model/model.ckpt')
         print train_cost , train_acc
+        exit()
 
 
     coord.request_stop()
