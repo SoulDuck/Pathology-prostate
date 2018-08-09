@@ -315,7 +315,7 @@ if __name__ == '__main__':
     tfrecord_path = 'tmp.tfrecord'
     images_op, labels_op, fnames_op = random_crop_shuffled_batch(tfrecord_path=tfrecord_path,
                                                                  batch_size=20, crop_size=(500, 500, 3), num_epoch=30)
-    saver = tf.train.Saver(max_to_keep=1)
+    saver = tf.train.Saver(max_to_keep=30)
     sess = tf.Session()
     init = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
     sess.run(init)
@@ -325,13 +325,13 @@ if __name__ == '__main__':
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
     # train
-    for i in range(10000):
+    for i in range(30000):
         images , labels = sess.run([images_op , labels_op])
         labels =cls2onehot(labels ,2 )
         train_cost, _ , train_acc  = sess.run([vgg.cost_op, vgg.train_op , vgg.accuracy_op],
                            feed_dict={vgg.x_: images, vgg.y_: labels, vgg.is_training: True})
 
-        saver.save(sess, save_path='saved_model/model.ckpt')
+        saver.save(sess, save_path='saved_model/model.ckpt' , global_step=i)
         print train_cost , train_acc
         exit()
 
