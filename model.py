@@ -6,7 +6,7 @@ class DNN(object):
         self.x_ = tf.placeholder(dtype=tf.float32, shape=[None, img_h , img_w , img_ch], name='x_')
         self.y_ = tf.placeholder(dtype=tf.float32, shape = [None ,self.n_classes ] , name='y_')
         self.is_training = tf.placeholder(dtype=tf.bool)
-        self.optimizer_name = 'sgd'
+        self.optimizer_name = 'adam'
         self.l2_weight_decay = False
         self.init_lr = 0.0001
         self.global_step = 0
@@ -286,7 +286,7 @@ if __name__ == '__main__':
     # random_crop_shuffled_batch Test
     tfrecord_path = 'tmp.tfrecord'
     images_op, labels_op, fnames_op = random_crop_shuffled_batch(tfrecord_path=tfrecord_path,
-                                                                 batch_size=2, crop_size=(500, 500, 3), num_epoch=100)
+                                                                 batch_size=30, crop_size=(500, 500, 3), num_epoch=30000)
     sess = tf.Session()
     init = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
     sess.run(init)
@@ -297,8 +297,8 @@ if __name__ == '__main__':
     for i in range(100):
         images , labels = sess.run([images_op , labels_op])
         labels =cls2onehot(labels ,2 )
-        cost = sess.run(vgg.cost_op , feed_dict={vgg.x_ : images , vgg.y_ : labels  , vgg.is_training : True })
-        print cost
+        cost, _ = sess.run([vgg.cost_op, vgg.train_op],
+                           feed_dict={vgg.x_: images, vgg.y_: labels, vgg.is_training: True})
     coord.request_stop()
     coord.join(threads)
 

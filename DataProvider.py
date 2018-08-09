@@ -195,7 +195,7 @@ def random_crop_shuffled_batch(tfrecord_path, batch_size, crop_size , num_epoch 
 
     image = tf.random_crop(value = image, size = crop_size)
     image=tf.cast(image , dtype=tf.float32)
-    images, labels, fnames = tf.train.shuffle_batch([image, label, filename], batch_size=batch_size, capacity=100,
+    images, labels, fnames = tf.train.shuffle_batch([image, label, filename], batch_size=batch_size, capacity=200,
                                                     num_threads=1,
                                                     min_after_dequeue=min_after_dequeue)
     return images, labels , fnames
