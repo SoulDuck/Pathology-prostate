@@ -12,3 +12,10 @@
 
 + Process
     > Fg , Bg 나누기 >>> 특정 크기보다 작은 이미지 경로 추출 하기 >>> Padding 붙이기 >>> TFrecord 파일로 만들기
+
+
+
+
++ Graph change
+ - https://stackoverflow.com/questions/33748552/tensorflow-how-to-replace-a-node-in-a-calculation-graph
+ - https://github.com/tensorflow/tensorflow/issues/1758

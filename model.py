@@ -127,7 +127,7 @@ class DNN(object):
                          'momentum': tf.train.MomentumOptimizer}
 
         self.pred_op = tf.nn.softmax(logits, name='softmax')
-        self.pred_self_op = tf.argmax(self.pred_op, axis=1, name='pred_self')
+        self.pred_cls_op = tf.argmax(self.pred_op, axis=1, name='pred_cls')
         self.cost_op= tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=self.y_), name='cost')
         self.lr_op = tf.train.exponential_decay(self.init_lr, self.global_step, decay_steps=int(self.max_iter / self.lr_decay_step),
                                                decay_rate=0.96,
@@ -277,6 +277,7 @@ class VGG(DNN):
 
 
 if __name__ == '__main__':
+
     vgg=VGG('vgg_11')
     from DataProvider import random_crop_shuffled_batch
     from utils import cls2onehot
@@ -284,12 +285,16 @@ if __name__ == '__main__':
     tfrecord_path = 'tmp.tfrecord'
     images_op, labels_op, fnames_op = random_crop_shuffled_batch(tfrecord_path=tfrecord_path,
                                                                  batch_size=20, crop_size=(500, 500, 3), num_epoch=30)
+    saver = tf.train.Saver(max_to_keep=1)
     sess = tf.Session()
     init = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
     sess.run(init)
 
+
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+
+    # train
 
     for i in range(10000):
         images , labels = sess.run([images_op , labels_op])
@@ -297,7 +302,9 @@ if __name__ == '__main__':
         train_cost, _ , train_acc  = sess.run([vgg.cost_op, vgg.train_op , vgg.accuracy_op],
                            feed_dict={vgg.x_: images, vgg.y_: labels, vgg.is_training: True})
 
+        saver.save(sess, save_path='saved_model/model.ckpt')
         print train_cost , train_acc
+
 
     coord.request_stop()
     coord.join(threads)
