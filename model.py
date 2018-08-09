@@ -291,7 +291,7 @@ if __name__ == '__main__':
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-    for i in range(100):
+    for i in range(10000):
         images , labels = sess.run([images_op , labels_op])
         labels =cls2onehot(labels ,2 )
         train_cost, _ , train_acc  = sess.run([vgg.cost_op, vgg.train_op , vgg.accuracy_op],
