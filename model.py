@@ -176,7 +176,8 @@ class DNN(object):
         conv_resize = tf.reshape(conv_resize, [-1, ori_height * ori_width, out_ch])
         #
         classmap = tf.matmul(conv_resize, label_w)
-        classmap = tf.reshape(classmap, [-1, ori_height, ori_width], name='classmap')
+        classmap = tf.reshape(classmap, [-1, ori_height, ori_width])
+        classmap = tf.identity(classmap , 'classmap')
         return classmap
 
 
