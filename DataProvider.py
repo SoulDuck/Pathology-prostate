@@ -217,7 +217,7 @@ if __name__ == '__main__':
     print '# fg : {} , # bg : {} '.format(len(fgs) , len(bgs))
 
     # NORMAL = 0  ABNORMAL =1
-    img_paths = fgs *3   + bgs
+    img_paths = fgs *3 + bgs
     labels = np.append(np.ones(len(fgs)*3), np.zeros(len(bgs))).astype(np.int32)
 
     print len(img_paths)
