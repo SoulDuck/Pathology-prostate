@@ -63,7 +63,8 @@ class Eval(object):
 if __name__ == '__main__':
     eval=Eval()
     eval.restore_model('saved_model/model.ckpt')
-    img=np.asarray(Image.open('./sample.png'))
+    img=np.asarray(Image.open('./sample.png').convert('RGB'))
+
     img=img.reshape([1] + list(np.shape(img)))
     classmap = eval.actmap(img, None)
     print np.shape(classmap)
