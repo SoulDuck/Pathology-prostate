@@ -6,7 +6,7 @@ class DNN(object):
         self.n_classes = n_classes
         self.x_ = tf.placeholder(dtype=tf.float32, shape=[None, None , None, img_ch], name='x_')
         self.y_ = tf.placeholder(dtype=tf.float32, shape = [None ,self.n_classes ] , name='y_')
-        self.is_training = tf.placeholder(dtype=tf.bool)
+        self.is_training = tf.placeholder(dtype=tf.bool , name='is_training')
         self.optimizer_name = 'adam'
         self.l2_weight_decay = False
         self.init_lr = 0.0001
