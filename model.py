@@ -319,21 +319,20 @@ if __name__ == '__main__':
     sess = tf.Session()
     init = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
     sess.run(init)
-
-
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
     # train
     for i in range(10000):
+
         images , labels = sess.run([images_op , labels_op])
         labels =cls2onehot(labels ,2 )
         train_cost, _ , train_acc  = sess.run([vgg.cost_op, vgg.train_op , vgg.accuracy_op],
                            feed_dict={vgg.x_: images, vgg.y_: labels, vgg.is_training: True})
 
-        saver.save(sess, save_path='saved_model/model.ckpt')
-        print train_cost , train_acc
-        exit()
+        if i > 8000 and i % 100 ==0 :
+            saver.save(sess, save_path='saved_model/model.ckpt')
+            print train_cost , train_acc
 
 
     coord.request_stop()
