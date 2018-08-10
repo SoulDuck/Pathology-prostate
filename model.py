@@ -330,9 +330,7 @@ if __name__ == '__main__':
         labels =cls2onehot(labels ,2 )
         train_cost, _ , train_acc  = sess.run([vgg.cost_op, vgg.train_op , vgg.accuracy_op],
                            feed_dict={vgg.x_: images, vgg.y_: labels, vgg.is_training: True})
-
-
-        if 20000 > i  and i % 100 ==0:
+        if 20000 < i  and i % 100 ==0:
             saver.save(sess, save_path='saved_model/model.ckpt' , global_step=i)
             print train_cost , train_acc
 
