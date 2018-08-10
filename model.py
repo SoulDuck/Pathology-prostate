@@ -327,7 +327,7 @@ if __name__ == '__main__':
 
     # train
     for i in range(30000):
-        sys.stdout.write('\r {} / {}'.format(i))
+        sys.stdout.write('\r {} / {}'.format(i, 30000))
         sys.stdout.flush()
         images , labels = sess.run([images_op , labels_op])
         labels =cls2onehot(labels ,2 )
