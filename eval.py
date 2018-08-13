@@ -35,32 +35,7 @@ class Eval(object):
         classmap = np.asarray((map(lambda x: (x - x.min()) / (x.max() - x.min()), classmap)))  # -->why need this?
         classmap = np.squeeze(classmap)
         return classmap
-        """
-        plt.imshow(cam_img, cmap=plt.cm.jet, alpha=0.5, interpolation='nearest',vmin=0, vmax=1)
-        # plt.show()
-        cmap = plt.cm.jet
-        plt.imsave('{}/actmap_abnormal_label_0.png'.format(save_dir), cmap(cam_img))
-        cam_img = Image.open('{}/actmap_abnormal_label_0.png'.format(save_dir))
-        ##임시로 한것이다 나중에 299 가 아닌 224로 고쳐진 코드가 있으면 지우자
-        cam_img = cam_img.resize((224, 224), PIL.Image.ANTIALIAS)
-        np_cam_img = np.asarray(cam_img)  # img 2 numpy
-        np_cam_img = fundus_processing.add_padding(np_cam_img.reshape(1, 224, 224, -1), 299, 299)  # padding
-        cam_img = Image.fromarray(
-            np_cam_img.reshape([ori_img_h, ori_img_w, 4]).astype('uint8'))  # padding#numpy 2 img
 
-        ori_img = Image.fromarray(ori_img.astype('uint8')).convert("RGBA")
-        # cam_img = Image.fromarray(cam_img.astype('uint8')).convert("RGBA")
-        overlay_img = Image.blend(ori_img, cam_img, 0.5)
-        plt.imshow(overlay_img)
-        plt.imsave('{}/overlay.png'.format(save_dir), overlay_img)
-        # plt.show()
-        plt.close();
-        """
-        """
-        if test_imgs.shape[-1] == 1:  # grey
-            plt.imshow(1 -img.reshape([test_imgs.shape[1], test_imgs.shape[2]]))
-            plt.show()
-        """
 if __name__ == '__main__':
     eval=Eval()
     eval.restore_model('saved_model/model.ckpt')

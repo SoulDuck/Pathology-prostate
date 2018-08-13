@@ -324,10 +324,10 @@ if __name__ == '__main__':
 
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
-
+    max_iter = 30000
     # train
-    for i in range(30000):
-        sys.stdout.write('\r {} / {}'.format(i, 30000))
+    for i in range(max_iter):
+        sys.stdout.write('\r {} / {}'.format(i, max_iter))
         sys.stdout.flush()
         images , labels = sess.run([images_op , labels_op])
         labels =cls2onehot(labels ,2 )
